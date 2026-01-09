@@ -171,6 +171,15 @@ func commandInspect(args []string) error {
 	return nil
 }
 
+func commandPokedex([]string) error {
+	fmt.Println("Your Pokédex:")
+	for _, pokemon := range pokedex.ListAll() {
+		fmt.Printf(" - %s\n", pokemon)
+	}
+
+	return nil
+}
+
 func commandExit([]string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
@@ -222,6 +231,11 @@ func init() {
 				name:        "inspect",
 				description: "Inspect a caught Pokèmon",
 				callback:    commandInspect,
+		},
+		"pokedex": {
+				name:        "pokedex",
+				description: "List Pokédex contents",
+				callback:    commandPokedex,
 		},
 	}
 }

@@ -19,3 +19,17 @@ func (p Pokedex) Get(name string) (PokemonInfo, bool) {
 		return v, true
 	}
 }
+
+func (p Pokedex) ListAll() []string {
+	if len(p) == 0 {
+		return nil
+	}
+
+	keys := make([]string, 0, len(p))
+	
+	for k := range p {
+		keys = append(keys, k)
+	}
+
+	return keys
+}
