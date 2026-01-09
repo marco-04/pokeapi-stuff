@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/marco-04/godex/internal"
@@ -27,10 +28,12 @@ type Location struct {
 	URL  string `json:"url"`
 }
 
-func getLocationBatch(url string, c internal.Cache) (mapNavigation, error) {
+var apiCache internal.Cache = internal.NewCache(10 * time.Second)
+
+func getLocationBatch(url string) (mapNavigation, error) {
 	var data []byte
 
-	cache, ok := c.Get(url)
+	cache, ok := apiCache.Get(url)
 	if ok {
 		data = cache
 	} else {
@@ -45,7 +48,7 @@ func getLocationBatch(url string, c internal.Cache) (mapNavigation, error) {
 			return mapNavigation{}, fmt.Errorf("I/O error: %w", err)
 		}
 
-		c.Add(url, body)
+		apiCache.Add(url, body)
 
 		data = body
 	}
@@ -63,7 +66,7 @@ func LocationNavigator() func (Direction) ([]Location, error) {
 	nextURL := ""
 	prevURL := ""
 
-	c := internal.NewCache(10 * time.Second)
+	
 
 	return func(direction Direction) ([]Location, error) {
 		switch direction {
@@ -77,7 +80,7 @@ func LocationNavigator() func (Direction) ([]Location, error) {
 			}
 		}
 
-		nav, err := getLocationBatch(url, c)
+		nav, err := getLocationBatch(url)
 		if err != nil {
 			return nil, fmt.Errorf("could not get locations: %w", err)
 		}
@@ -91,4 +94,41 @@ func LocationNavigator() func (Direction) ([]Location, error) {
 
 		return nav.Results, nil
 	}
+}
+
+func GetLocationDetails(location string) (internal.LocationDetails, error) {
+	location = strings.ReplaceAll(location, "/", "")
+	url := "https://pokeapi.co/api/v2/location-area/" + location
+
+	var data []byte
+
+	cache, ok := apiCache.Get(url)
+	if ok {
+		data = cache
+	} else {
+		res, err := http.Get(url)
+		if err != nil {
+			return internal.LocationDetails{}, fmt.Errorf("network error: %w", err)
+		}
+		if res.StatusCode != http.StatusOK {
+			return internal.LocationDetails{}, fmt.Errorf("http error: %d", res.StatusCode)
+		}
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return internal.LocationDetails{}, fmt.Errorf("I/O error: %w", err)
+		}
+
+		apiCache.Add(url, body)
+
+		data = body
+	}
+
+	var locationDetails internal.LocationDetails
+	if err := json.Unmarshal(data, &locationDetails); err != nil {
+		return internal.LocationDetails{}, fmt.Errorf("json decoding error: %w", err)
+	}
+
+	return locationDetails, nil
 }

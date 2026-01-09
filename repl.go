@@ -73,7 +73,28 @@ func dispatchCommand(cmd []string) {
 		args = nil
 	}
 
-	command.callback(args)
+	err := command.callback(args)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func commandExplore(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("No map specified")
+	}
+
+	location := args[0]
+	locationDetails, err := GetLocationDetails(location)
+	if err != nil {
+		return fmt.Errorf("could not get location details: %w", err)
+	}
+
+	for _, encounter := range locationDetails.Encounters {
+		fmt.Println(encounter.Name)
+	}
+	
+	return nil
 }
 
 func commandExit([]string) error {
@@ -112,6 +133,11 @@ func init() {
 				name:        "map",
 				description: "Display the name of the previous 20 locations",
 				callback:    commandMapPrev,
+		},
+		"explore": {
+				name:        "explore",
+				description: "List all Pokémons living in a map",
+				callback:    commandExplore,
 		},
 	}
 }
