@@ -9,26 +9,10 @@ import (
 type cliCommand struct {
 	name string
 	description string
-	callback func() error
+	callback func(args []string) error
 }
 
-var availableCommands = map[string]cliCommand{
-		"exit": {
-				name:        "exit",
-				description: "Exit the Pokedex",
-				callback:    commandExit,
-		},
-		"map": {
-				name:        "map",
-				description: "Display the name of the next 20 locations",
-				callback:    commandMapNext,
-		},
-		"mapb": {
-				name:        "map",
-				description: "Display the name of the previous 20 locations",
-				callback:    commandMapPrev,
-		},
-}
+var availableCommands map[string]cliCommand
 
 func cleanInput(text string) []string {
 	wordsList := strings.Split(strings.ToLower(strings.TrimSpace(text)), " ")
@@ -50,7 +34,7 @@ func printLocations(locations []Location) {
 }
 
 var locationNavigator = LocationNavigator()
-var commandMapNext = func() error {
+var commandMapNext = func([]string) error {
 	locations, err := locationNavigator(next)
 	if err != nil {
 		return err
@@ -61,7 +45,7 @@ var commandMapNext = func() error {
 	return nil
 }
 
-var commandMapPrev = func() error {
+var commandMapPrev = func([]string) error {
 	locations, err := locationNavigator(prev)
 	if err != nil {
 		return err
@@ -73,29 +57,61 @@ var commandMapPrev = func() error {
 }
 
 func dispatchCommand(cmd []string) {
-	if cmd[0] == "help" {
-		commandHelp()
-	} else {
-		command, ok := availableCommands[cmd[0]]
-		if !ok {
-			fmt.Printf("Command \"%s\" not found\n", cmd)
-		}
-		command.callback()
+	if len(cmd) == 0 {
+		return
 	}
+
+	command, ok := availableCommands[cmd[0]]
+	if !ok {
+		fmt.Printf("Command \"%s\" not found\n", cmd)
+	}
+
+	var args []string
+	if len(cmd) > 1 {
+		args = cmd[1:]
+	} else {
+		args = nil
+	}
+
+	command.callback(args)
 }
 
-func commandExit() error {
+func commandExit([]string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp() error {
+func commandHelp([]string) error {
 	fmt.Print("Welcome to the Pokedex!\nUsage:\n\n")
-	fmt.Println("help: Displays a help message")
+	// fmt.Println("help: Displays a help message")
 	for k, v := range availableCommands {
 		fmt.Printf("%s: %s\n", k, v.description)
 	}
 	return nil
 }
 
+func init() {
+	availableCommands = map[string]cliCommand{
+		"exit": {
+				name:        "exit",
+				description: "Exit the Pokedex",
+				callback:    commandExit,
+		},
+		"help": {
+				name:        "help",
+				description: "Displays a help message",
+				callback:    commandHelp,
+		},
+		"map": {
+				name:        "map",
+				description: "Display the name of the next 20 locations",
+				callback:    commandMapNext,
+		},
+		"mapb": {
+				name:        "map",
+				description: "Display the name of the previous 20 locations",
+				callback:    commandMapPrev,
+		},
+	}
+}
