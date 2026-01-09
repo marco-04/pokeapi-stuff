@@ -5,9 +5,9 @@ type LocationDetails struct {
 }
 
 type Encounters struct {
-	Pokemon `json:"pokemon"`
+	PokemonEncounter `json:"pokemon"`
 }
 
-type Pokemon struct {
+type PokemonEncounter struct {
 	Name string `json:"name"`
 }

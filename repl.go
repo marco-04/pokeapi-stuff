@@ -3,7 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 	"strings"
+	"math/rand"
+
+	"github.com/marco-04/godex/internal"
 )
 
 type cliCommand struct {
@@ -13,6 +17,7 @@ type cliCommand struct {
 }
 
 var availableCommands map[string]cliCommand
+var pokedex = internal.NewPokedex()
 
 func cleanInput(text string) []string {
 	wordsList := strings.Split(strings.ToLower(strings.TrimSpace(text)), " ")
@@ -97,6 +102,48 @@ func commandExplore(args []string) error {
 	return nil
 }
 
+func commandCatch(args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("No pokemon specified")
+	}
+
+	pokemon := args[0]
+	pokemonInfo, err := GetPokemonInfo(pokemon)
+	if err != nil {
+		return fmt.Errorf("could not get pokemon info: %w", err)
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...", pokemon)
+
+	var caught bool
+	const maxEXP int = 500
+	baseEXP := pokemonInfo.BaseEXP
+
+	rand := rand.New(rand.NewSource(time.Now().Unix()))
+	caught = rand.Int() % maxEXP > baseEXP
+
+	time.Sleep(1 * time.Second)
+
+	for range 3 {
+		if caught || rand.Int() % 2 == 0 {
+			fmt.Print(" *tick*")
+		} else {
+			break
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+
+	if caught {
+		fmt.Printf("\n%s was caught!\n", pokemon)
+		pokedex.Add(pokemon, pokemonInfo)
+	} else {
+		fmt.Printf("\n%s escaped!\n", pokemon)
+	}
+
+	return nil
+}
+
 func commandExit([]string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
@@ -138,6 +185,11 @@ func init() {
 				name:        "explore",
 				description: "List all Pokémons living in a map",
 				callback:    commandExplore,
+		},
+		"catch": {
+				name:        "catch",
+				description: "Try to catch a Pokémon",
+				callback:    commandCatch,
 		},
 	}
 }

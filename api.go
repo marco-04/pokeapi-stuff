@@ -66,8 +66,6 @@ func LocationNavigator() func (Direction) ([]Location, error) {
 	nextURL := ""
 	prevURL := ""
 
-	
-
 	return func(direction Direction) ([]Location, error) {
 		switch direction {
 		case next:
@@ -131,4 +129,41 @@ func GetLocationDetails(location string) (internal.LocationDetails, error) {
 	}
 
 	return locationDetails, nil
+}
+
+func GetPokemonInfo(name string) (internal.PokemonInfo, error) {
+	name = strings.ReplaceAll(name, "/", "")
+	url := "https://pokeapi.co/api/v2/pokemon/" + name
+
+	var data []byte
+
+	cache, ok := apiCache.Get(url)
+	if ok {
+		data = cache
+	} else {
+		res, err := http.Get(url)
+		if err != nil {
+			return internal.PokemonInfo{}, fmt.Errorf("network error: %w", err)
+		}
+		if res.StatusCode != http.StatusOK {
+			return internal.PokemonInfo{}, fmt.Errorf("http error: %d", res.StatusCode)
+		}
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return internal.PokemonInfo{}, fmt.Errorf("I/O error: %w", err)
+		}
+
+		apiCache.Add(url, body)
+
+		data = body
+	}
+
+	var pokemon internal.PokemonInfo
+	if err := json.Unmarshal(data, &pokemon); err != nil {
+		return internal.PokemonInfo{}, fmt.Errorf("json decoding error: %w", err)
+	}
+
+	return pokemon, nil
 }
