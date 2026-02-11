@@ -3,7 +3,8 @@ import { State } from "../state.js";
 
 export async function commandExit(state: State) {
   console.log("Closing the Pokedex... Goodbye!");
-  state.repl.close()
+  state.repl.close();
+  state.pokeapi.stopCache();
   process.exit(0);
 }
 

@@ -1,10 +1,20 @@
+import { Cache } from "./cache.js";
+
 export class PokeAPI {
   private static readonly baseURL = "https://pokeapi.co/api/v2";
   private limit: number = 20;
   private nextPage: string | null = null;
   private prevPage: string | null = null;
 
-  constructor() {}
+  private cache: Cache;
+
+  constructor(cacheInterval: number) {
+    this.cache = new Cache(cacheInterval);
+  }
+
+  stopCache() {
+    this.cache.stopReapLoop();
+  }
 
   updateLimit(limit: number) {
     if (limit > 0) {
@@ -14,15 +24,29 @@ export class PokeAPI {
     }
   }
 
+  private async cachedFetchJSON(input: string, init?: RequestInit) {
+    const cachedVal = this.cache.get(input);
+    if (cachedVal === undefined) {
+      console.log(`Fetching "${input}"`)
+      const response = await fetch(input, init);
+
+      const responseJSON = await response.json();
+      this.cache.add(input, responseJSON);
+      return responseJSON;
+    } else {
+      this.cache.add(input, cachedVal);
+      return cachedVal;
+    }
+  }
+
   private async fetchLocations(pageURL: string | null): Promise<LocationsResponse> {
     const locationURL = pageURL === null ? `${PokeAPI.baseURL}/location-area?limit=${this.limit}` : pageURL;
-    console.log(`Fetching "${locationURL}"`)
-    const response = await fetch(locationURL, {
+    const locations = await this.cachedFetchJSON(locationURL, {
       method: "GET",
       mode: "cors"
-    });
+    }) as LocationsResponse;
 
-    return (await response.json()) as LocationsResponse;
+    return locations;
   }
 
   async fetchPage(page: "next" | "prev"): Promise<ShallowLocation[]> {
@@ -34,12 +58,12 @@ export class PokeAPI {
 
   async fetchLocation(locationName: string): Promise<Location> {
     const locationURL = `${PokeAPI.baseURL}/location-area/${locationName}`;
-    const response = await fetch(locationURL, {
+    const location = await this.cachedFetchJSON(locationURL, {
       method: "GET",
       mode: "cors"
-    });
+    }) as Location;
 
-    return (await response.json()) as Location;
+    return location;
   }
 }
 

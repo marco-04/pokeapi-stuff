@@ -4,7 +4,7 @@ import { type State } from "../state.js";
 
 export type CLICommand = {
   description: string;
-  callback: (state: State) => Promise<void>;
+  callback: (state: State, ...args: string[]) => Promise<void>;
 }
 
 export function getCommands(): Record<string, CLICommand> {

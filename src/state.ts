@@ -16,6 +16,6 @@ export function initState() {
 
   return {
     repl: rl,
-    pokeapi: new PokeAPI()
+    pokeapi: new PokeAPI(30000)
   };
 }
