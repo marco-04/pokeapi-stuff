@@ -9,3 +9,6 @@ You can:
 - exit with `exit`
 
 This repo is not going to be updated, but I might try to rewrite this project by improving the project structure and the way the JSON data is parsed (and eventually the cache as well)
+
+---
+Typescript version on the `typescript` branch
