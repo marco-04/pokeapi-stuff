@@ -107,12 +107,32 @@ export interface Location {
   id: number
   name: string
   pokemon_encounters: {
-    pokemon: Pokemon
+    pokemon: Partial<Pokemon>
   }[]
 }
 
 export interface Pokemon {
   name: string
-  base_experience?: number
+  height: number,
+  weight: number,
+  base_experience: number,
+  stats: Stat[]
+  types: Type[]
+}
+
+export interface Stat {
+  base_stat: number,
+  stat: {
+    name: string,
+    url: string
+  }
+}
+
+export interface Type {
+  slot: number,
+  type: {
+    name: string,
+    url: string
+  }
 }
 

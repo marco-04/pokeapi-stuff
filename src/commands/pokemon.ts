@@ -17,10 +17,6 @@ export async function commandCatch(state: State, ...args: string[]) {
   const pokemonName = args[0];
   const pokemon = await state.pokeapi.fetchPokemon(pokemonName);
 
-  if (pokemon.base_experience === undefined) {
-    throw new Error("Missing base experience value");
-  }
-
   console.log(`Throwing a Pokeball at ${pokemonName}...`);
   const caught = (Math.random() * MAX_BASE_EXPERIENCE) % MAX_BASE_EXPERIENCE >= pokemon.base_experience;
 
@@ -40,3 +36,33 @@ export async function commandCatch(state: State, ...args: string[]) {
     console.log(`${pokemonName} escaped!`);
   }
 }
+
+export async function commandInspect(state: State, ...args: string[]) {
+  if (args.length == 0) {
+    throw new Error("Missing pokemon name");
+  }
+  if (args.length > 1) {
+    throw new Error("Wrong number of argument");
+  }
+
+  const pokemonName = args[0];
+  const pokemon = await state.pokeapi.fetchPokemon(pokemonName);
+
+  if (!state.pokeapi.getRegisteredPokemons().includes(pokemon.name)) {
+    console.log(`You haven't caught ${pokemon.name} yet`);
+    return;
+  }
+
+  console.log(`Name: ${pokemon.name}
+Height: ${pokemon.height}
+Weight: ${pokemon.weight}
+Stats:`);
+  for (const stat of pokemon.stats) {
+    console.log(` - ${stat.stat.name}: ${stat.base_stat}`);
+  }
+  console.log("Types:");
+  for (const typ of pokemon.types) {
+    console.log(` - ${typ.type.name}`);
+  }
+}
+

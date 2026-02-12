@@ -23,6 +23,9 @@ export async function commandExplore(state: State, ...args: string[]) {
 
   console.log(`Exploring ${locationName}...\nFound Pokémons:`);
   for (const encounter of location.pokemon_encounters) {
+    if (encounter.pokemon.name === undefined) {
+      continue;
+    }
     console.log(` - ${encounter.pokemon.name}`);
   }
 }
