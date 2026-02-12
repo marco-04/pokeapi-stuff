@@ -8,6 +8,8 @@ export class PokeAPI {
 
   private cache: Cache;
 
+  private pokedex: Record<string, Pokemon> = {};
+
   constructor(cacheInterval: number) {
     this.cache = new Cache(cacheInterval);
   }
@@ -29,6 +31,10 @@ export class PokeAPI {
     if (cachedVal === undefined) {
       console.log(`Fetching "${input}"`)
       const response = await fetch(input, init);
+
+      if (response.status >= 400) {
+        throw new Error(`HTTP Error ${response.status}`);
+      }
 
       const responseJSON = await response.json();
       this.cache.add(input, responseJSON);
@@ -65,6 +71,24 @@ export class PokeAPI {
 
     return location;
   }
+
+  async fetchPokemon(pokemonName: string): Promise<Pokemon> {
+    const pokemonURL = `${PokeAPI.baseURL}/pokemon/${pokemonName}`;
+    const pokemon = await this.cachedFetchJSON(pokemonURL, {
+      method: "GET",
+      mode: "cors"
+    }) as Pokemon;
+
+    return pokemon;
+  }
+
+  registerPokemon(pokemon: Pokemon) {
+    this.pokedex[pokemon.name] = pokemon;
+  }
+
+  getRegisteredPokemons() {
+    return Object.keys(this.pokedex);
+  }
 }
 
 export interface LocationsResponse {
@@ -82,41 +106,13 @@ export interface ShallowLocation {
 export interface Location {
   id: number
   name: string
-  pokemon_encounters: PokemonEncounter[]
-}
-
-export interface PokemonEncounter {
-  pokemon: Pokemon
-  version_details: VersionDetail2[]
+  pokemon_encounters: {
+    pokemon: Pokemon
+  }[]
 }
 
 export interface Pokemon {
   name: string
-  url: string
+  base_experience?: number
 }
-
-export interface VersionDetail2 {
-  encounter_details: EncounterDetail[]
-  max_chance: number
-  version: Version2
-}
-
-export interface EncounterDetail {
-  chance: number
-  condition_values: any[]
-  max_level: number
-  method: Method
-  min_level: number
-}
-
-export interface Method {
-  name: string
-  url: string
-}
-
-export interface Version2 {
-  name: string
-  url: string
-}
-
 

@@ -1,5 +1,6 @@
 import { commandExit, commandHelp } from "./utility.js";
-import { mapCallback } from "./map.js";
+import { mapCallback, commandExplore } from "./map.js";
+import { commandCatch } from "./pokemon.js";
 import { type State } from "../state.js";
 
 export type CLICommand = {
@@ -10,7 +11,7 @@ export type CLICommand = {
 export function getCommands(): Record<string, CLICommand> {
   return {
     exit: {
-      description: "Exits the pokedex",
+      description: "Exits the Pokédex",
       callback: commandExit,
     },
     help: {
@@ -24,6 +25,14 @@ export function getCommands(): Record<string, CLICommand> {
     mapb: {
       description: "Fetch previous page of locations",
       callback: mapCallback("prev"),
+    },
+    explore: {
+      description: "List Pokémon encounters in an area",
+      callback: commandExplore,
+    },
+    catch: {
+      description: "Try to catch a Pokémon!",
+      callback: commandCatch,
     },
   };
 }

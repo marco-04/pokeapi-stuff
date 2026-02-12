@@ -26,7 +26,7 @@ export function startRepl() {
 
     if (cmd !== undefined) {
       try {
-        await cmd.callback(state)
+        await cmd.callback(state, ...line.slice(1))
       } catch(err: unknown) {
         console.log((err as Error).message)
       }
