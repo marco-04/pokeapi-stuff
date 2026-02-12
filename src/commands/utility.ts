@@ -2,8 +2,11 @@ import { getCommands, type CLICommand } from "./commands.js";
 import { State } from "../state.js";
 
 export async function commandExit(state: State) {
-  console.log("Closing the Pokedex... Goodbye!");
   state.repl.close();
+}
+
+export function exit(state: State) {
+  console.log("Closing the Pokedex... Goodbye!");
   state.pokeapi.stopCache();
   process.exit(0);
 }

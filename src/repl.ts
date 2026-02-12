@@ -1,6 +1,6 @@
 import { initState } from './state.js';
 import { getCommands } from './commands/commands.js';
-import { commandExit } from './commands/utility.js';
+import { exit } from './commands/utility.js';
 
 export function cleanInput(input: string): string[] {
   return input.trim().toLowerCase().replaceAll(/ +/gi, " ").split(" ");
@@ -10,8 +10,8 @@ export function startRepl() {
   const state = initState();
 
   state.repl.prompt();
-  state.repl.on("close", async () => {
-    await commandExit(state);
+  state.repl.on("close", () => {
+    exit(state);
   });
   state.repl.on("line", async (input: string) => {
     if (input.length === 0) {
