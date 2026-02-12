@@ -66,3 +66,10 @@ Stats:`);
   }
 }
 
+export async function commandPokedex(state: State) {
+  console.log("Your Pokédex:");
+  for (const pokemon of state.pokeapi.getRegisteredPokemons()) {
+    console.log(` - ${pokemon}`);
+  }
+}
+
